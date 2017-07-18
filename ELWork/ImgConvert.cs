@@ -41,27 +41,31 @@ namespace ELWork
                 int secPerTrack = 18; // 每Track的Sector數，2HD為18
                 bool[] notEmptyTrack = new bool[168]; // 每個Head是否有壓縮資料，每Track兩個Head
 
-                // 取得最大Track數
+                // 0x00 取得最大Track數
                 maxTrackLen = tmpImgContent[offset++];
 
-                // 取得每Track的Sector數
+                // 0x01 取得每Track的Sector數
                 secPerTrack = tmpImgContent[offset++];
 
-                // 取得每個Head是否有壓縮資料
+                // 0x02~0xA9 取得每個Head是否有壓縮資料
                 for (int h = 0; h < 168; h++)
                 {
                     notEmptyTrack[h] = Convert.ToBoolean(tmpImgContent[offset + h]);
                 }
                 offset += 168;
 
-                // 解碼RLE壓縮的內容
+                // 0xAA~ 解碼RLE壓縮的內容
                 for (int t = 0; t <= maxTrackLen; t++) // 跑每個Track
                 {
                     // 跑每個Head，一個Track有兩個Head
                     for (int h = 0; h < 2; h++)
                     {
                         // 如果這個Head沒有資料，則跳過
-                        if (!notEmptyTrack[(t * 2) + h]) continue;
+                        if (!notEmptyTrack[(t * 2) + h])
+                        {
+                            tmpResult.AddRange(new byte[0x200 * secPerTrack]);
+                            continue;
+                        }
 
                         // 取得這個Head壓縮後的資料長度
                         int tmpDataLen = 0;
